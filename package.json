@@ -1,0 +1,33 @@
+{
+  "name": "market",
+  "version": "1.0.0",
+  "description": "Toouk market place where things are being tokanized",
+  "keywords": [
+    "toouk",
+    "crypto",
+    "market",
+    "place"
+  ],
+  "license": "ISC",
+  "author": "Zaman Ehsani",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-esm src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.19.17",
+    "prisma": "^6.16.2",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

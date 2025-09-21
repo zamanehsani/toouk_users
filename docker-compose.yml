@@ -1,0 +1,51 @@
+services:
+  # Users Service
+  users-service:
+    build: .
+    container_name: users-service
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    depends_on:
+      users-db:
+        condition: service_healthy
+    networks:
+      - users-network
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  # PostgreSQL Database for Users
+  users-db:
+    image: postgres:15-alpine
+    container_name: users-db
+    environment:
+      POSTGRES_DB: users_db
+      POSTGRES_USER: users_admin
+      POSTGRES_PASSWORD: secure_password_123
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - users_db_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - users-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U users_admin -d users_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+
+networks:
+  users-network:
+    driver: bridge
+    name: users-network
+
+volumes:
+  users_db_data:
+    name: users_db_data
