@@ -1,5 +1,5 @@
 {
-  "name": "market",
+  "name": "users-market",
   "version": "1.0.0",
   "description": "Toouk market place where things are being tokanized",
   "keywords": [
@@ -20,9 +20,12 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^20.19.17",
     "prisma": "^6.16.2",
