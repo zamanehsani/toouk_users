@@ -119,7 +119,7 @@ export const getUserById = async (req: express.Request, res: express.Response) =
     }
 
     // publish event to RabbitMQ (if needed)
-    await publishEvent('users.viewed', { timestamp: Date.now(), user });
+    await publishEvent('user.viewed', { timestamp: Date.now(), user });
 
     res.json({ user });
   } catch (error) {
@@ -189,6 +189,9 @@ export const createUser = async (req: express.Request, res: express.Response) =>
         updatedAt: true,
       }
     });
+
+    // publish event to RabbitMQ (if needed)
+    await publishEvent('user.created', { timestamp: Date.now(), user });
 
     res.status(201).json({ user, message: "User created successfully" });
   } catch (error) {
@@ -261,6 +264,11 @@ export const updateUser = async (req: express.Request, res: express.Response) =>
       }
     });
 
+
+    // publish event to RabbitMQ (if needed)
+    await publishEvent('user.updated', { timestamp: Date.now(), user });
+
+
     res.json({ user, message: "User updated successfully" });
   } catch (error) {
     console.error("Error updating user:", error);
@@ -314,6 +322,11 @@ export const deleteUser = async (req: express.Request, res: express.Response) =>
           updatedAt: true,
         }
       });
+      
+
+
+      // publish event to RabbitMQ (if needed)
+      await publishEvent('user.deactivated', { timestamp: Date.now(), user });
       
       res.json({ user, message: "User deactivated successfully" });
     }
@@ -381,6 +394,9 @@ export const updateAvatar = async (req: any, res: express.Response) => {
       }
     });
 
+    // publish event to RabbitMQ (if needed)
+    await publishEvent('user.avatarUpdated', { timestamp: Date.now(), user });
+    
     res.json({ user, message: "Avatar updated successfully" });
   } catch (error) {
     console.error("Error updating avatar:", error);
