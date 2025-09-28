@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import multer from "multer";
 import { user_routers } from "./routes/route";
+import { connectRabbitMQ, closeRabbitMQ } from "./utils/rabbitmq";  
+
 
 dotenv.config({ path: '.env.dev' });
 const app = express();
@@ -46,16 +48,56 @@ app.use((req: express.Request, res: express.Response) => {
 });
 
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Available endpoints:`);
-  console.log(`- GET    /users - List all users with filtering`);
-  console.log(`- GET    /users/:id - Get single user`);
-  console.log(`- POST   /users - Create new user`);
-  console.log(`- PUT    /users/:id - Update user`);
-  console.log(`- DELETE /users/:id - Delete user`);
-  console.log(`- PUT    /users/:id/avatar - Update avatar`);
-  console.log(`- GET    /users/login - Login endpoint`);
-  console.log(`- GET    /health - Health check`);
+async function startServer() {
+  try {
+    console.log("Starting server and connecting to RabbitMQ...");
+    await connectRabbitMQ();
+    console.log("Connected to RabbitMQ");
+
+     // Start Express server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📋 Available endpoints:`);
+      console.log(`- GET    /users - List all users with filtering`);
+      console.log(`- GET    /users/:id - Get single user`);
+      console.log(`- POST   /users - Create new user`);
+      console.log(`- PUT    /users/:id - Update user`);
+      console.log(`- DELETE /users/:id - Delete user`);
+      console.log(`- PUT    /users/:id/avatar - Update avatar`);
+      console.log(`- GET    /users/login - Login endpoint`);
+      console.log(`- GET    /health - Health check`);
+    });
+
+  }catch(error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+}
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Shutting down gracefully...');
+  try {
+    await closeRabbitMQ();
+    console.log('✅ RabbitMQ connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during shutdown:', error);
+    process.exit(1);
+  }
 });
 
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
+  try {
+    await closeRabbitMQ();
+    console.log('✅ RabbitMQ connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during shutdown:', error);
+    process.exit(1);
+  }
+});
+
+// Start the server
+startServer();
