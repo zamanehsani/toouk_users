@@ -1,7 +1,8 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import { s3Service } from "../utls/s3Service";
+import { s3Service } from "../utils/s3Service";
 import crypto from "crypto";
+import { publishEvent } from "../utils/rabbitmq.js";
 
 const prisma = new PrismaClient();
 
@@ -64,6 +65,9 @@ export const listUsers = async (req: express.Request, res: express.Response) => 
       prisma.users.count({ where })
     ]);
 
+    // publish event to RabbitMQ (if needed)
+    await publishEvent('users.listed', { timestamp: Date.now(), filter: req.query, users:users });
+
     res.json({
       users,
       pagination: {
@@ -113,6 +117,9 @@ export const getUserById = async (req: express.Request, res: express.Response) =
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    // publish event to RabbitMQ (if needed)
+    await publishEvent('users.viewed', { timestamp: Date.now(), user });
 
     res.json({ user });
   } catch (error) {

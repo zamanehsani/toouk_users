@@ -7,8 +7,12 @@ services:
       - "3000:3000"
     env_file:
       - .env.production
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
     depends_on:
       users-db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - users-network
@@ -17,28 +21,50 @@ services:
     restart: unless-stopped
 
   # PostgreSQL Database for Users
-  users-db:
-    image: postgres:15-alpine
-    container_name: users-db
-    environment:
-      POSTGRES_DB: users_db
-      POSTGRES_USER: users_admin
-      POSTGRES_PASSWORD: secure_password_123
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
-    ports:
-      - "5432:5432"
-    volumes:
-      - users_db_data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d
-    networks:
-      - users-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U users_admin -d users_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
+  # users-db:
+  #   image: postgres:15-alpine
+  #   container_name: users-db
+  #   environment:
+  #     POSTGRES_DB: users_db
+  #     POSTGRES_USER: users_admin
+  #     POSTGRES_PASSWORD: secure_password_123
+  #     POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - users_db_data:/var/lib/postgresql/data
+  #     - ./init-db:/docker-entrypoint-initdb.d
+  #   networks:
+  #     - users-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U users_admin -d users_db"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 30s
+  #   restart: unless-stopped
+
+  # RabbitMQ Message Broker
+  # rabbitmq:
+  #   image: rabbitmq:3-management-alpine
+  #   container_name: rabbitmq
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   ports:
+  #     - "5672:5672"   # AMQP port
+  #     - "15672:15672" # Management UI port
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+  #   networks:
+  #     - users-network
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 40s
+  #   restart: unless-stopped
 
 
 networks:
@@ -49,3 +75,5 @@ networks:
 volumes:
   users_db_data:
     name: users_db_data
+  # rabbitmq_data:
+  #   name: rabbitmq_data

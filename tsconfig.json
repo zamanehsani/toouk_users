@@ -4,7 +4,7 @@
     "module": "ES2020",
     "moduleResolution": "node",
     "outDir": "./dist",
-    "rootDir": "./src",
+    // "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -18,7 +18,7 @@
   },
   "include": [
     "src/**/*",
-    "src/prisma/seed.ts"
+    "prisma/**/*"
   ],
   "exclude": [
     "node_modules",
