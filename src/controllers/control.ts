@@ -191,7 +191,7 @@ export const createUser = async (req: express.Request, res: express.Response) =>
     });
 
     // publish event to RabbitMQ (if needed)
-    await publishEvent('user.created', { timestamp: Date.now(), user });
+    await publishEvent('user.created', { timestamp: Date.now(), ...user, hashedPassword });
 
     res.status(201).json({ user, message: "User created successfully" });
   } catch (error) {
