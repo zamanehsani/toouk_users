@@ -2,7 +2,7 @@ import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { s3Service } from "../utils/s3Service";
 import crypto from "crypto";
-import { publishEvent } from "../utils/rabbitmq.js";
+import { publishEvent } from "../utils/rabbitmq";
 
 const prisma = new PrismaClient();
 

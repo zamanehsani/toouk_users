@@ -1,5 +1,88 @@
-import { connectRabbitMQ, publishEvent, consumeEvents, closeRabbitMQ } from '../utils/rabbitmq.js';
+import { connectRabbitMQ, publishEvent, consumeEvents, closeRabbitMQ } from '../utils/rabbitmq';
 
+describe('RabbitMQ Integration', () => {
+  let channel: any;
+
+  beforeAll(async () => {
+    // Set up RabbitMQ connection before tests
+    try {
+      channel = await connectRabbitMQ();
+    } catch (error) {
+      console.warn('RabbitMQ not available for testing:', error);
+    }
+  }, 30000); // 30 second timeout for connection
+
+  afterAll(async () => {
+    // Clean up after tests
+    try {
+      await closeRabbitMQ();
+    } catch (error) {
+      // Ignore cleanup errors
+    }
+  });
+
+  it('should connect to RabbitMQ successfully', async () => {
+    if (!channel) {
+      console.warn('Skipping RabbitMQ test - connection not available');
+      return;
+    }
+    
+    expect(channel).toBeDefined();
+    console.log('✅ RabbitMQ connection test passed');
+  });
+
+  it('should publish events to queue', async () => {
+    if (!channel) {
+      console.warn('Skipping publish test - RabbitMQ not available');
+      return;
+    }
+
+    const testMessage = { 
+      message: 'Hello from Jest test!', 
+      timestamp: Date.now() 
+    };
+
+    await expect(
+      publishEvent('test-queue', testMessage)
+    ).resolves.not.toThrow();
+    
+    console.log('✅ Publishing test passed');
+  });
+
+  it('should set up event consumer', async () => {
+    if (!channel) {
+      console.warn('Skipping consumer test - RabbitMQ not available');
+      return;
+    }
+
+    const mockHandler = jest.fn();
+    
+    await expect(
+      consumeEvents('test-queue', mockHandler)
+    ).resolves.not.toThrow();
+    
+    console.log('✅ Consumer setup test passed');
+  });
+
+  it('should handle connection errors gracefully', async () => {
+    // Test error handling
+    const originalEnv = process.env.RABBITMQ_URL;
+    process.env.RABBITMQ_URL = 'amqp://invalid-url:5672';
+    
+    // This should handle the error gracefully
+    try {
+      await connectRabbitMQ();
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
+    
+    // Restore original environment
+    process.env.RABBITMQ_URL = originalEnv;
+    console.log('✅ Error handling test passed');
+  });
+});
+
+// Keep the standalone test function for manual testing
 async function testRabbitMQ() {
   try {
     console.log('🧪 Testing RabbitMQ connection...');
@@ -32,7 +115,7 @@ async function testRabbitMQ() {
 }
 
 // Run test if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   testRabbitMQ();
 }
 

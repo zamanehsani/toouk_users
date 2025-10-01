@@ -1,5 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export class S3Service {
   private s3Client: S3Client;
@@ -22,7 +22,7 @@ export class S3Service {
    */
   async uploadAvatar(file: any, userId: string): Promise<string> {
     const fileExtension = file.originalname.split('.').pop();
-    const fileName = `avatars/${userId}-${uuidv4()}.${fileExtension}`;
+    const fileName = `avatars/${userId}-${randomUUID()}.${fileExtension}`;
 
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
