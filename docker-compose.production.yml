@@ -1,0 +1,48 @@
+# Production Docker Compose for Docker Hub deployment
+# This separates the users service from database infrastructure
+version: '3.8'
+
+services:
+  # Users Service - for Docker Hub
+  users-service:
+    image: zamanehsani/toouk-users:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: toouk-users-service
+    ports:
+      - "3000:3000"
+    environment:
+      # Database connection (external)
+      DATABASE_URL: ${DATABASE_URL}
+      
+      # RabbitMQ connection (external)
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      
+      # AWS Configuration
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      
+      # Service Configuration
+      API_VERSION: ${API_VERSION:-v1}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      PORT: 3000
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - toouk-network
+
+networks:
+  toouk-network:
+    external: true
+    name: toouk_market_network
