@@ -24,9 +24,11 @@ RUN npm run build
 RUN ls -la dist/ || echo "Build directory not found"
 RUN ls -la dist/src/ || echo "Source directory not found"
 RUN ls -la dist/src/routes/ || echo "Routes directory not found"
+RUN ls -la dist/prisma/ || echo "Prisma seed directory not found"
 
-# Remove dev dependencies to reduce image size (keep the built files)
-RUN npm ci --only=production && npm cache clean --force
+# Note: We keep dev dependencies for Prisma migrations and seeding
+# Remove only unnecessary packages while keeping Prisma CLI
+RUN npm cache clean --force
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
